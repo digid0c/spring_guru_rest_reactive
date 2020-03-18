@@ -1,1 +1,2 @@
+[![CircleCI](https://circleci.com/gh/digid0c/spring_guru_rest_reactive.svg?style=svg)](https://circleci.com/gh/digid0c/spring_guru_rest_reactive)
 # Spring WebFlux REST application based on Spring Guru course.
