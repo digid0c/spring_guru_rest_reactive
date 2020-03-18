@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static guru.samples.rest.reactive.controller.CategoryController.BASE_URL;
+
 @RestController
-@RequestMapping(CategoryController.BASE_URL)
+@RequestMapping(BASE_URL)
 public class CategoryController {
 
     public static final String BASE_URL = "/api/v1/categories";
