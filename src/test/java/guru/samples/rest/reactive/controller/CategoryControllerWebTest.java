@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 import static guru.samples.rest.reactive.controller.CategoryController.BASE_URL;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.web.reactive.server.WebTestClient.bindToController;
@@ -73,6 +74,8 @@ public class CategoryControllerWebTest {
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody(Void.class);
+
+        verify(categoryRepository).saveAll(any(Publisher.class));
     }
 
     @Test
@@ -88,6 +91,26 @@ public class CategoryControllerWebTest {
                 .expectStatus().isOk()
                 .expectBody(Category.class)
                 .isEqualTo(categoryToUpdate);
+
+        verify(categoryRepository).save(any(Category.class));
+    }
+
+    @Test
+    public void shouldPatchCategory() {
+        Category categoryToPatch = getCategory();
+        Mono<Category> categoryStream = Mono.just(categoryToPatch);
+        when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Mono.just(categoryToPatch));
+        when(categoryRepository.save(any(Category.class))).thenReturn(Mono.just(categoryToPatch));
+
+        webTestClient.patch()
+                .uri(BASE_URL_WITH_CATEGORY_ID)
+                .body(categoryStream, Category.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Category.class)
+                .isEqualTo(categoryToPatch);
+
+        verify(categoryRepository).save(any(Category.class));
     }
 
     private Category getCategory() {

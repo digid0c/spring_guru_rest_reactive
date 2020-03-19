@@ -9,6 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static guru.samples.rest.reactive.controller.CategoryController.BASE_URL;
+import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
@@ -44,5 +45,15 @@ public class CategoryController {
     public Mono<Category> update(@PathVariable String id, @RequestBody Category category) {
         category.setId(id);
         return categoryRepository.save(category);
+    }
+
+    @PatchMapping("/{id}")
+    public Mono<Category> patch(@PathVariable String id, @RequestBody Category category) {
+        return categoryRepository.findById(id)
+                .map(foundCategory -> {
+                    ofNullable(category.getName()).ifPresent(foundCategory::setName);
+                    return foundCategory;
+                })
+                .flatMap(categoryRepository::save);
     }
 }
