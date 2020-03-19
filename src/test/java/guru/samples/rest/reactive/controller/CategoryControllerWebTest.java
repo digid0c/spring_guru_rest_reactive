@@ -6,11 +6,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.reactivestreams.Publisher;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static guru.samples.rest.reactive.controller.CategoryController.BASE_URL;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.web.reactive.server.WebTestClient.bindToController;
@@ -49,10 +51,7 @@ public class CategoryControllerWebTest {
 
     @Test
     public void shouldFindCategoryById() {
-        Category category = Category.builder()
-                .id(CATEGORY_ID)
-                .name(CATEGORY_NAME)
-                .build();
+        Category category = getCategory();
         when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Mono.just(category));
 
         webTestClient.get()
@@ -60,5 +59,41 @@ public class CategoryControllerWebTest {
                 .exchange()
                 .expectBody(Category.class)
                 .isEqualTo(category);
+    }
+
+    @Test
+    public void shouldCreateNewCategory() {
+        Category categoryToCreate = getCategory();
+        Mono<Category> categoryStream = Mono.just(categoryToCreate);
+        when(categoryRepository.saveAll(any(Publisher.class))).thenReturn(Flux.just(categoryToCreate));
+
+        webTestClient.post()
+                .uri(BASE_URL)
+                .body(categoryStream, Category.class)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(Void.class);
+    }
+
+    @Test
+    public void shouldUpdateCategory() {
+        Category categoryToUpdate = getCategory();
+        Mono<Category> categoryStream = Mono.just(categoryToUpdate);
+        when(categoryRepository.save(any(Category.class))).thenReturn(Mono.just(categoryToUpdate));
+
+        webTestClient.put()
+                .uri(BASE_URL_WITH_CATEGORY_ID)
+                .body(categoryStream, Category.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Category.class)
+                .isEqualTo(categoryToUpdate);
+    }
+
+    private Category getCategory() {
+        return Category.builder()
+                .id(CATEGORY_ID)
+                .name(CATEGORY_NAME)
+                .build();
     }
 }

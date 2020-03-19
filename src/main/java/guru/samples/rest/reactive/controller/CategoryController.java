@@ -2,15 +2,14 @@ package guru.samples.rest.reactive.controller;
 
 import guru.samples.rest.reactive.domain.Category;
 import guru.samples.rest.reactive.repository.CategoryRepository;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static guru.samples.rest.reactive.controller.CategoryController.BASE_URL;
+import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping(BASE_URL)
@@ -33,5 +32,17 @@ public class CategoryController {
     @GetMapping("/{id}")
     public Mono<Category> findById(@PathVariable String id) {
         return categoryRepository.findById(id);
+    }
+
+    @ResponseStatus(CREATED)
+    @PostMapping
+    public Mono<Void> create(@RequestBody Publisher<Category> categoryStream) {
+        return categoryRepository.saveAll(categoryStream).then();
+    }
+
+    @PutMapping("/{id}")
+    public Mono<Category> update(@PathVariable String id, @RequestBody Category category) {
+        category.setId(id);
+        return categoryRepository.save(category);
     }
 }
