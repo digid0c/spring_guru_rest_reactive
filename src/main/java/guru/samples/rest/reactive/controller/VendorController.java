@@ -9,6 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static guru.samples.rest.reactive.controller.VendorController.BASE_URL;
+import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
@@ -44,5 +45,16 @@ public class VendorController {
     public Mono<Vendor> update(@PathVariable String id, @RequestBody Vendor vendor) {
         vendor.setId(id);
         return vendorRepository.save(vendor);
+    }
+
+    @PatchMapping("/{id}")
+    public Mono<Vendor> patch(@PathVariable String id, @RequestBody Vendor vendor) {
+        return vendorRepository.findById(id)
+                .map(foundVendor -> {
+                    ofNullable(vendor.getFirstName()).ifPresent(foundVendor::setFirstName);
+                    ofNullable(vendor.getLastName()).ifPresent(foundVendor::setLastName);
+                    return foundVendor;
+                })
+                .flatMap(vendorRepository::save);
     }
 }

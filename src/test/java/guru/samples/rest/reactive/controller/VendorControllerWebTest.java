@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 import static guru.samples.rest.reactive.controller.VendorController.BASE_URL;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.web.reactive.server.WebTestClient.bindToController;
@@ -74,6 +75,8 @@ public class VendorControllerWebTest {
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody(Void.class);
+
+        verify(vendorRepository).saveAll(any(Publisher.class));
     }
 
     @Test
@@ -89,6 +92,26 @@ public class VendorControllerWebTest {
                 .expectStatus().isOk()
                 .expectBody(Vendor.class)
                 .isEqualTo(vendorToUpdate);
+
+        verify(vendorRepository).save(any(Vendor.class));
+    }
+
+    @Test
+    public void shouldPatchVendor() {
+        Vendor vendorToPatch = getVendor();
+        Mono<Vendor> vendorStream = Mono.just(vendorToPatch);
+        when(vendorRepository.findById(VENDOR_ID)).thenReturn(Mono.just(vendorToPatch));
+        when(vendorRepository.save(any(Vendor.class))).thenReturn(Mono.just(vendorToPatch));
+
+        webTestClient.patch()
+                .uri(BASE_URL_WITH_VENDOR_ID)
+                .body(vendorStream, Vendor.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Vendor.class)
+                .isEqualTo(vendorToPatch);
+
+        verify(vendorRepository).save(any(Vendor.class));
     }
 
     private Vendor getVendor() {
